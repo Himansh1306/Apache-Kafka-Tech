@@ -30,7 +30,7 @@ def get_data_by_topic_source(topic,source,iphead,data):
 		if len(data) >=thread_start:
 				get_producer_data(s_addr,thread_start,data)
 				get_replica_fetcher_data(s_addr,thread_start,data)
-			
+
 
 def get_producer_data(s_addr,thread_start,data):
 	thread_end=thread_start+int(encode(data[thread_start-1]),2)
@@ -48,16 +48,16 @@ def get_replica_fetcher_data(s_addr,thread_start,data):
 	if "ReplicaFetcherThread" in data[thread_start:thread_start+int(encode(data[thread_start-1]),2)]:
                                 print "From "+s_addr+" "+" Fetch: "+data[thread_start:thread_end]
                                 topic_len1 = int(encode(data[thread_end+17]),2)
-                                
+
 				data_end = thread_end+18+topic_len1
                                 while data_end + 4 < len(data):
                                         if encode(data[data_end:data_end+2]) == "11 100000":
                                                 if encode(data[data_end+5]) != "0":
-                                        		fetch_topics_v = ''.join(data[data_end+5:data_end+5+int(encode(data[data_end+5]),2)+1]) 
+                                        		fetch_topics_v = ''.join(data[data_end+5:data_end+5+int(encode(data[data_end+5]),2)+1])
 							print fetch_topics_v
                                         data_end=data_end + 1
 	return fetch_topics_v
-	
+
 
 def upack_packet(port,topic,source):
     try:
@@ -75,7 +75,7 @@ def upack_packet(port,topic,source):
     	#ip header
     	ip_header = packet[0:20]
     	iph = unpack('!BBHHHBBH4s4s' , ip_header)
-        
+
         #tcp header
         version_ihl = iph[0]
         version = version_ihl >> 4
@@ -100,12 +100,12 @@ def upack_packet(port,topic,source):
     	acknowledgement = tcph[3]
     	doff_reserved = tcph[4]
     	tcph_length = doff_reserved >> 4
- 
+
         #data
         h_size = iph_length + tcph_length * 4
         data_size = len(packet) - h_size
         data = packet[h_size:]
-	
+
 	#get data by topic&source
 	get_data_by_topic_source(topic,source,iph,data)
 
@@ -115,9 +115,11 @@ def main():
 	except getopt.GetoptError:
         	print 'Error: kafka_sniffer.py -t <topic> -s <source> -p <kafka_port>'
         	sys.exit(2)
-
+        if len(opts) == 0:
+		print "Error: python kafka_sniffer.py -h for help"
+		sys.exit(2)
 	for opt, arg in opts:
-        	if opt == "-h":
+        	if opt == "-h" :
             		print ' kafka_sniffer.py -t <topic> -s <source> -p <kafka_port>'
             		print ' if all topics, topic=all'
             		print ' if all sources, source=0.0.0.0'
@@ -131,7 +133,7 @@ def main():
 	print "topic:", topic
 	print "source:", source
 	print "port:", port
-	
+
         upack_packet(port,topic,source)
 if __name__ == "__main__":
     	main()
