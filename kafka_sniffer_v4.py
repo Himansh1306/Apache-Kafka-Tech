@@ -35,8 +35,8 @@ def get_data_by_topic_source(topic,source,iphead,data):
 
 def get_producer_data(s_addr,thread_start,data):
 	thread_end=thread_start+int(encode(data[thread_start-1]),2)
-	## producer is a client lib name and can be changed , for example "sarama" for golang lib
-        if "producer" in data[thread_start:thread_end]:
+	## clients['golang'] is a client lib name and can be changed , for example "sarama" for golang lib
+        if clients['golang'] in data[thread_start:thread_end]:
 				next_step=12
                 		topic_len=int(encode(data[thread_end+next_step-1]),2)
                                 print "From "+s_addr+" "+data[thread_start:thread_end]+" Topic: "+data[thread_end+next_step:thread_end+next_step+topic_len]
