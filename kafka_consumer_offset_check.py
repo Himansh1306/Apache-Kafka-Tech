@@ -1,6 +1,7 @@
 #!/usr/bin/python2.7
 '''
-1, todo
+1, not support python3 because of a difference in dict behavior between python 2 and 3, refer https://github.com/Parsely/pykafka/issues/670
+2, todo: will make it as the prometheus exporter
 '''
 from pykafka import KafkaClient
 from pykafka.utils.compat import iteritems
