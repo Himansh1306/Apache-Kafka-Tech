@@ -7,7 +7,7 @@ import socket, sys
 from struct import *
 import getopt
 
-clients={'golang':"sarama",'default':"producer",'cpp':"librdkafka"}
+clients={'golang':"sarama",'default':"producer",'cpp':"librdkafka",'python':"pykafka"}
 
 def encode(s):
     return ' '.join([bin(ord(c)).replace('0b', '') for c in s])
