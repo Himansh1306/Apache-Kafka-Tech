@@ -12,7 +12,7 @@ log.basicConfig(level=log.CRITICAL,format='%(asctime)s %(levelname)s %(message)s
 
 import argparse
 parser = argparse.ArgumentParser(description='kafka consummer offset remote check')
-parser.add_argument('-kafkabroker', help='-kafkabroker 127.0.0.1:9092')
+parser.add_argument('-kafkabroker',required=True, help='-kafkabroker 127.0.0.1:9092')
 args = parser.parse_args()
 
 
