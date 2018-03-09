@@ -11,7 +11,7 @@
 """
 
 """
-Author:Samuel 
+Author:Samuel
 Date:20180218
 """
 
@@ -25,40 +25,66 @@ clients={'golang':"sarama",'default':"producer",'cpp':"librdkafka",'python':"pyk
 
 
 def get_producer_data(data,topic,output):
+#	print array.array('B',data)
+	offset = 14
 	api_client_part = unpack('>IHHIH',data[0:14])
 	## Producer ApiKey
 	if api_client_part[1] == 0:
 		try:
+			print data
+			print array.array('B',data)
+			output['DataLen'] = api_client_part[0]
+                        output['ApiKey'] = api_client_part[1]
+                        output['ApiVersion'] = api_client_part[2]
+                        output['CorrelationId'] = api_client_part[3]
 			client_len = api_client_part[-1]
+			output['Client'] = data[offset:offset+client_len]
 			if api_client_part[2] == 3:
-				pos=2
+				offset = offset + 2
 			else:
-				pos=0
+				offset = offset
 			client_len = api_client_part[-1]
-                        topic_part = unpack('>HIIH',data[pos+14+client_len:pos+14+client_len+12])
-			topic_name = data[pos+14+client_len+12:pos+14+client_len+12+topic_part[3]]
-			## print topic_name
+			offset = offset + client_len
+                        conn_part = unpack('>HIIH',data[offset:offset+12])
+			output['RequiredAcks'] = conn_part[0]
+                        output['Timeout'] = conn_part[1]
+			output['TopicCount'] = conn_part[2]
+			offset = offset + 12
+			topic_name = data[offset:offset+conn_part[3]]
+			output['TopicName'] = topic_name
+			offset = offset + conn_part[3]
         		if topic_name == topic:
-        			partition_part = unpack('>IIIQIIBIHIQQQHI',data[pos+14+client_len+12+topic_part[3]:pos+14+client_len+12+topic_part[3]+69])
-                                output['DataLen'] = api_client_part[0]
-                                output['ApiKey'] = api_client_part[1]
-                                output['ApiVersion'] = api_client_part[2]
-                                output['CorrelationId'] = api_client_part[3]
-                                output['Client'] = data[14:14+client_len]
-                                output['RequiredAcks'] = topic_part[0]
-                                output['Timeout'] = topic_part[1]
-                                output['TopicName'] = topic_name
+        			partition_part = unpack('>II',data[offset:offset+8])
                                 output['PartitionCount'] = partition_part[0]
+                                output['Partition'] = partition_part[1]
+				print output.items()
+				offset = offset + 8
+				message_part = unpack('>IQII??Q',data[offset:offset+30])
+                                output['MessageSetSize'] = message_part[0]
+                                output['Offset'] = message_part[1]
+                                output['MessageSize'] = message_part[2]
+                                output['Magic'] = message_part[3]
+                                output['Attribute'] = message_part[4]
+                                output['Timestamp'] = message_part[5]
+				offset = offset + 30
+				key_len = unpack('>I',data[offset:offset+4])
+				offset = offset + 4
+				output['Key'] = data[offset:offset+key_len[0]]
+				offset = offset + key_len[0]
+				value_len = unpack('>I',data[offset:offset+4])
+				offset = offset + 4
+				output['Value'] = data[offset:offset+value_len[0]]
 				print output.items()
 		except Exception as e:
 			print e
+			print array.array('B',data)
 			pass
 
 def get_replica_fetcher_data(data,topic):
 	#todo
 	pass
 
-def unpack_packet(port,topic,source):
+def unpack_packet(port,topic,source,kafka_cluster):
     try:
 	s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
     except socket.error , msg:
@@ -98,14 +124,14 @@ def unpack_packet(port,topic,source):
         data = packet[h_size:]
 
 	#get data by topic&source
-	output={'SourceIP':'','SourcePort':'','DestIP':'','DestPort':'','DataLen':-1,'ApiKey':-1,'ApiVersion':-1,'CorrelationId':-1,'Client':'','RequiredAcks':-1,'Timeout':-1,'TopicName':'','PartitionCount':-1}
+	output={'SourceIP':'','SourcePort':'','DestIP':'','DestPort':'','DataLen':-1,'ApiKey':-1,'ApiVersion':-1,'CorrelationId':-1,'Client':'','RequiredAcks':-1,'Timeout':-1,'TopicName':'','PartitionCount':-1,'TopicCount':-1,'Partition':-1,'MessageSetSize':-1,'Offset':-1,'MessageSize':-1,'Magic':-1,'Attribute':-1,'Timestamp':'','Key':'','Value':''}
 	output['SourceIP'] = s_addr
 	output['SourcePort'] = source_port
 	output['DestIP'] = d_addr
 	output['DestPort'] = dest_port
-	if len(data)>12 and source == output['SourceIP'] and topic in data:
+	if len(data)>12 and source == output['SourceIP'] and output['SourceIP'] not in kafka_cluster and topic in data:
 		get_producer_data(data,topic,output)
-	elif len(data)>12 and source == "0.0.0.0" and topic in data:
+	elif len(data)>12 and source == "0.0.0.0" and output['SourceIP'] not in kafka_cluster and topic in data:
 		get_producer_data(data,topic,output)
 	else:
 		pass
@@ -135,7 +161,8 @@ def main():
 	print "topic:", topic
 	print "source:", source
 	print "port:", port
-
-        unpack_packet(port,topic,source)
+	## exclude fetch request 
+	kafka_cluster=['']
+        unpack_packet(port,topic,source,kafka_cluster)
 if __name__ == "__main__":
     	main()
