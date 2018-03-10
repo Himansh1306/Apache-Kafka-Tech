@@ -31,7 +31,7 @@ def get_producer_data(data,topic,output):
 	## Producer ApiKey
 	if api_client_part[1] == 0:
 		try:
-			print data
+			#print data
 			print array.array('B',data)
 			output['DataLen'] = api_client_part[0]
                         output['ApiKey'] = api_client_part[1]
@@ -57,24 +57,36 @@ def get_producer_data(data,topic,output):
         			partition_part = unpack('>II',data[offset:offset+8])
                                 output['PartitionCount'] = partition_part[0]
                                 output['Partition'] = partition_part[1]
-				print output.items()
+			#	print output.items()
 				offset = offset + 8
-				message_part = unpack('>IQII??Q',data[offset:offset+30])
-                                output['MessageSetSize'] = message_part[0]
-                                output['Offset'] = message_part[1]
-                                output['MessageSize'] = message_part[2]
-                                output['Magic'] = message_part[3]
-                                output['Attribute'] = message_part[4]
-                                output['Timestamp'] = message_part[5]
-				offset = offset + 30
-				key_len = unpack('>I',data[offset:offset+4])
+				messageset_part = unpack('>I',data[offset:offset+4])
+                                output['MessageSetSize'] = messageset_part[0]
 				offset = offset + 4
-				output['Key'] = data[offset:offset+key_len[0]]
-				offset = offset + key_len[0]
-				value_len = unpack('>I',data[offset:offset+4])
-				offset = offset + 4
-				output['Value'] = data[offset:offset+value_len[0]]
-				print output.items()
+				while offset < len(data):
+					print array.array('B',data[offset:offset+30])
+					message_part = unpack('>QII??Q',data[offset:offset+26])
+                                	output['Offset'] = message_part[0]
+                                	output['MessageSize'] = message_part[1]
+                                	output['Crc'] = message_part[2]
+                                	output['Magic'] = int(message_part[3])
+                                	output['Attribute'] = int(message_part[4])
+                                	output['Timestamp'] = message_part[5]
+					offset = offset + 26
+					print output.items()
+					key_len = unpack('>I',data[offset:offset+4])
+					if key_len[0] == 4294967295:
+						output['Key'] = None
+						offset = offset + 4
+					else:
+						offset = offset + 4
+						output['Key'] = data[offset:offset+key_len[0]]
+						offset = offset + key_len[0]
+					value_len = unpack('>I',data[offset:offset+4])
+					offset = offset + 4
+					output['Value'] = data[offset:offset+value_len[0]]
+					offset = offset + value_len[0]
+					print output.items()
+				print "==============================="
 		except Exception as e:
 			print e
 			print array.array('B',data)
@@ -124,7 +136,7 @@ def unpack_packet(port,topic,source,kafka_cluster):
         data = packet[h_size:]
 
 	#get data by topic&source
-	output={'SourceIP':'','SourcePort':'','DestIP':'','DestPort':'','DataLen':-1,'ApiKey':-1,'ApiVersion':-1,'CorrelationId':-1,'Client':'','RequiredAcks':-1,'Timeout':-1,'TopicName':'','PartitionCount':-1,'TopicCount':-1,'Partition':-1,'MessageSetSize':-1,'Offset':-1,'MessageSize':-1,'Magic':-1,'Attribute':-1,'Timestamp':'','Key':'','Value':''}
+	output={'SourceIP':'','SourcePort':'','DestIP':'','DestPort':'','DataLen':-1,'ApiKey':-1,'ApiVersion':-1,'CorrelationId':-1,'Client':'','RequiredAcks':-1,'Timeout':-1,'TopicName':'','PartitionCount':-1,'TopicCount':-1,'Partition':-1,'MessageSetSize':-1,'Offset':-1,'MessageSize':-1,'Magic':-1,'Attribute':-1,'Timestamp':-1,'Key':'','Value':'','Crc':''}
 	output['SourceIP'] = s_addr
 	output['SourcePort'] = source_port
 	output['DestIP'] = d_addr
@@ -161,8 +173,7 @@ def main():
 	print "topic:", topic
 	print "source:", source
 	print "port:", port
-	## exclude fetch request 
-	kafka_cluster=['']
+	kafka_cluster=['','','']
         unpack_packet(port,topic,source,kafka_cluster)
 if __name__ == "__main__":
     	main()
