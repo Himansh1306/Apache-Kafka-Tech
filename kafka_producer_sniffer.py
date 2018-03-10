@@ -26,14 +26,14 @@ clients={'golang':"sarama",'default':"producer",'cpp':"librdkafka",'python':"pyk
 
 
 def get_producer_data(data,topic,output):
-#	print array.array('B',data)
+	#print array.array('B',data)
 	offset = 14
 	api_client_part = unpack('>IHHIH',data[0:14])
 	## Producer ApiKey
 	if api_client_part[1] == 0:
 		try:
 			#print data
-			print array.array('B',data)
+	#		print array.array('B',data)
 			output['DataLen'] = api_client_part[0]
                         output['ApiKey'] = api_client_part[1]
                         output['ApiVersion'] = api_client_part[2]
@@ -63,25 +63,28 @@ def get_producer_data(data,topic,output):
                                 output['MessageSetSize'] = messageset_part[0]
 				offset = offset + 4
 				while offset < len(data):
-					print array.array('B',data[offset:offset+30])
+					#print array.array('B',data[offset:offset+30])
 					message_part = unpack('>QII??Q',data[offset:offset+26])
                                 	output['Offset'] = message_part[0]
                                 	output['MessageSize'] = message_part[1]
                                 	output['Crc'] = message_part[2]
                                 	output['Magic'] = int(message_part[3])
                                 	output['Attribute'] = int(message_part[4])
-                                	output['Timestamp'] = message_part[5]
-					offset = offset + 26
-					print output.items()
+					if int(message_part[3]) == 1:
+                                		output['Timestamp'] = message_part[5]
+						offset = offset + 26
+					## kafka version < 0.10
+					elif int(message_part[3]) == 0 :
+						offset = offset + 18
 					key_len = unpack('>I',data[offset:offset+4])
-					## key is None
-					if key_len[0] == 4294967295:
-						output['Key'] = None
-						offset = offset + 4
-					else:
-						offset = offset + 4
-						output['Key'] = data[offset:offset+key_len[0]]
-						offset = offset + key_len[0]
+                                                ## key is None
+                                        if key_len[0] == 4294967295:
+                                                output['Key'] = None
+                                                offset = offset + 4
+                                        else:
+                                                offset = offset + 4
+                                                output['Key'] = data[offset:offset+key_len[0]]
+                                                offset = offset + key_len[0]
 					value_len = unpack('>I',data[offset:offset+4])
 					offset = offset + 4
 					output['Value'] = data[offset:offset+value_len[0]]
@@ -174,7 +177,8 @@ def main():
 	print "topic:", topic
 	print "source:", source
 	print "port:", port
-	kafka_cluster=['','','']
+	## kafka broker ip addresses
+	kafka_cluster=['','']
         unpack_packet(port,topic,source,kafka_cluster)
 if __name__ == "__main__":
     	main()
