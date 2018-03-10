@@ -3,6 +3,7 @@
 """Funtion.
 1, Unpack the packet by sniffer from kafka tcp port
 2, Get the producer(client) ip, port and kafka protocol related info
+3, limit: support kafka version < 0.11.0.1 , due to there is a big change on message format since kafka 0.11.0.1
 """
 
 """Usage.
