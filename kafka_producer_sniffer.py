@@ -33,7 +33,7 @@ def get_producer_data(data,topic,output):
 	if api_client_part[1] == 0:
 		try:
 			#print data
-	#		print array.array('B',data)
+#			print array.array('B',data)
 			output['DataLen'] = api_client_part[0]
                         output['ApiKey'] = api_client_part[1]
                         output['ApiVersion'] = api_client_part[2]
@@ -57,13 +57,14 @@ def get_producer_data(data,topic,output):
         		if topic_name == topic:
         			partition_part = unpack('>II',data[offset:offset+8])
                                 output['PartitionCount'] = partition_part[0]
+				partition_loop = partition_part[0]
                                 output['Partition'] = partition_part[1]
 				offset = offset + 8
 				messageset_part = unpack('>I',data[offset:offset+4])
                                 output['MessageSetSize'] = messageset_part[0]
 				offset = offset + 4
 				while offset < len(data):
-					#print array.array('B',data[offset:offset+30])
+					print array.array('B',data[offset:offset+30])
 					message_part = unpack('>QII??Q',data[offset:offset+26])
                                 	output['Offset'] = message_part[0]
                                 	output['MessageSize'] = message_part[1]
@@ -86,9 +87,18 @@ def get_producer_data(data,topic,output):
                                                 output['Key'] = data[offset:offset+key_len[0]]
                                                 offset = offset + key_len[0]
 					value_len = unpack('>I',data[offset:offset+4])
+					print "value_len: "+str(value_len[0])
 					offset = offset + 4
 					output['Value'] = data[offset:offset+value_len[0]]
 					offset = offset + value_len[0]
+					partition_loop = partition_loop - 1
+					print "partition_loop: "+str(partition_loop)
+					if partition_loop > 0 and offset + 8 < len(data):
+						print array.array('B',data[offset:offset+8])
+						partition_others_part = unpack('>II',data[offset:offset+8])
+						output['Partition'] = partition_others_part[0]
+						output['MessageSetSize'] = partition_others_part[1]
+						offset = offset + 8
 					print output.items()
 				print "=============One Request=================="
 		except Exception as e:
@@ -178,7 +188,7 @@ def main():
 	print "source:", source
 	print "port:", port
 	## kafka broker ip addresses
-	kafka_cluster=['','']
+	kafka_cluster=['','','']
         unpack_packet(port,topic,source,kafka_cluster)
 if __name__ == "__main__":
     	main()
