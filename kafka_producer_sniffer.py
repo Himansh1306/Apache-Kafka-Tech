@@ -64,7 +64,7 @@ def get_producer_data(data,topic,output):
                                 output['MessageSetSize'] = messageset_part[0]
 				offset = offset + 4
 				while offset < len(data):
-					print array.array('B',data[offset:offset+30])
+					##print array.array('B',data[offset:offset+30])
 					message_part = unpack('>QII??Q',data[offset:offset+26])
                                 	output['Offset'] = message_part[0]
                                 	output['MessageSize'] = message_part[1]
@@ -87,14 +87,12 @@ def get_producer_data(data,topic,output):
                                                 output['Key'] = data[offset:offset+key_len[0]]
                                                 offset = offset + key_len[0]
 					value_len = unpack('>I',data[offset:offset+4])
-					print "value_len: "+str(value_len[0])
 					offset = offset + 4
 					output['Value'] = data[offset:offset+value_len[0]]
 					offset = offset + value_len[0]
 					partition_loop = partition_loop - 1
 					print "partition_loop: "+str(partition_loop)
 					if partition_loop > 0 and offset + 8 < len(data):
-						print array.array('B',data[offset:offset+8])
 						partition_others_part = unpack('>II',data[offset:offset+8])
 						output['Partition'] = partition_others_part[0]
 						output['MessageSetSize'] = partition_others_part[1]
