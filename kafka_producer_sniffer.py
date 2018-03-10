@@ -57,7 +57,6 @@ def get_producer_data(data,topic,output):
         			partition_part = unpack('>II',data[offset:offset+8])
                                 output['PartitionCount'] = partition_part[0]
                                 output['Partition'] = partition_part[1]
-			#	print output.items()
 				offset = offset + 8
 				messageset_part = unpack('>I',data[offset:offset+4])
                                 output['MessageSetSize'] = messageset_part[0]
@@ -74,6 +73,7 @@ def get_producer_data(data,topic,output):
 					offset = offset + 26
 					print output.items()
 					key_len = unpack('>I',data[offset:offset+4])
+					## key is None
 					if key_len[0] == 4294967295:
 						output['Key'] = None
 						offset = offset + 4
@@ -86,10 +86,10 @@ def get_producer_data(data,topic,output):
 					output['Value'] = data[offset:offset+value_len[0]]
 					offset = offset + value_len[0]
 					print output.items()
-				print "==============================="
+				print "=============One Request=================="
 		except Exception as e:
 			print e
-			print array.array('B',data)
+			##print array.array('B',data)
 			pass
 
 def get_replica_fetcher_data(data,topic):
