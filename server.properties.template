@@ -1,3 +1,5 @@
+##comment##
+##log.segment.bytes >>replica.fetch.max.bytes>>message.max.bytes##
 ###########################################################################################
 ############################# Server Basics #############################
 
@@ -64,7 +66,7 @@ log.index.interval.bytes=4096
 
 # This is largest message size Kafka will allow to be appended to this topic. 
 # Note that if you increase this size you must also increase your consumer’s fetch size so they can fetch such large messages.
-message.max.bytes=1000000
+message.max.bytes=20000000
 
 offset.metadata.max.bytes = 1024
 
@@ -76,7 +78,7 @@ log.flush.scheduler.interval.ms=2000
 log.cleanup.policy = delete
 ############################# Log Retention Policy #############################
 log.retention.hours=24
-log.segment.bytes=1073741824
+log.segment.bytes=40000000
 log.retention.check.interval.ms=300000
 log.cleaner.enable=true
 log.roll.hours=168
@@ -94,7 +96,7 @@ unclean.leader.election.enable=false
 
 ############################# Replication configurations ########################
 num.replica.fetchers=4
-replica.fetch.max.bytes=1048576
+replica.fetch.max.bytes=30000000
 replica.fetch.wait.max.ms=500
 
 # The frequency with which each replica saves its high watermark to disk to handle recovery.
