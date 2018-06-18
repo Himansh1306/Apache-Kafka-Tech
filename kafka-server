@@ -16,10 +16,9 @@ DODTIME=3
 
 # Export JVM Option
 # KAFKA_OPTS
-HOST_IP=`ip addr show interface|grep inet|head -n 1|awk '{print $2}'|cut -d /  -f1`
-JMX_PORT=port
-export KAFKA_HEAP_OPTS="-server -Xmx16g -Xms16g -XX:MetaspaceSize=96m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:G1HeapRegionSize=16M -XX:MinMetaspaceFreeRatio=50 -XX:MaxMetaspaceFreeRatio=80 -Djava.awt.headless=true -Xloggc:${GC_PATH} -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -Djava.rmi.server.hostname=${
-} -Dcom.sun.management.jmxremote.port=${JMX_PORT} -Dcom.sun.management.jmxremote.rmi.port=${JMX_PORT}"
+SERVER_IP=`ip addr show bond0|grep inet|head -n 1|awk '{print $2}'|cut -d /  -f1`
+JMX_PORT=9093
+export KAFKA_OPTS="-javaagent:/data/kafka_current/jmx_prometheus_javaagent-0.6.jar=7071:/data/kafka_current/kafka-0-8-2.yml -server -Xmx31g -Xms31g -XX:MetaspaceSize=96m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:G1HeapRegionSize=16M -XX:MinMetaspaceFreeRatio=50 -XX:MaxMetaspaceFreeRatio=80 -Djava.awt.headless=true -Xloggc:${GC_PATH} -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps  -Dcom.sun.management.jmxremote.port=${JMX_PORT} -Dcom.sun.management.jmxremote.rmi.port=${JMX_PORT} -Djava.rmi.server.hostname=${SERVER_IP}"
 # Checks if the given pid represents a live process.
 # Returns 0 if the pid is a live process, 1 otherwise
 check_process_alive() {
